@@ -35,12 +35,13 @@ func newFakeClient() v1.SecretInterface {
 			"webhook":         []byte("http://localhost:9200/webhook"),
 			"accessKeyID":     []byte("accessKeyID"),
 			"secretAccessKey": []byte("secretAccessKey"),
+			"accountID":       []byte("accountID"),
 			"kmsKeyId":        []byte("kmsKeyId"),
 			"token":           []byte("token"),
 			"credentials":     []byte(`{"token": "token", "type": "authorized_user"}`),
 			"database":        []byte("database"),
 			"dsn":             []byte(""),
-			"typelessApi":     []byte("false"),
+			"typelessApi":     []byte("true"),
 		},
 	}).CoreV1().Secrets("default")
 }
@@ -51,7 +52,7 @@ func mountSecret() {
 		Webhook:         "http://localhost:9200/webhook",
 		Username:        "username",
 		Password:        "password",
-		ApiKey:          "apiKey",
+		APIKey:          "apiKey",
 		AccessKeyID:     "accessKeyId",
 		SecretAccessKey: "secretAccessKey",
 		KmsKeyID:        "kmsKeyId",
@@ -59,7 +60,7 @@ func mountSecret() {
 		Credentials:     `{"token": "token", "type": "authorized_user"}`,
 		Database:        "database",
 		DSN:             "",
-		TypelessApi:     false,
+		TypelessAPI:     false,
 	}
 	file, _ := json.MarshalIndent(secretValues, "", " ")
 	_ = os.WriteFile(mountedSecret, file, 0o644)
@@ -354,8 +355,8 @@ func Test_GetValuesFromSecret(t *testing.T) {
 		}
 
 		typelessApi := client.FieldByName("typelessApi").Bool()
-		if typelessApi != false {
-			t.Errorf("Expected typelessApi false value from secret, got %t", typelessApi)
+		if typelessApi == false {
+			t.Errorf("Expected typelessApi true value from secret, got %t", typelessApi)
 		}
 	})
 
@@ -458,6 +459,13 @@ func Test_GetValuesFromSecret(t *testing.T) {
 
 	t.Run("Get Kinesis values from Secret", func(t *testing.T) {
 		clients := factory.KinesisClients(&config.Kinesis{TargetBaseOptions: config.TargetBaseOptions{SecretRef: secretName}, AWSConfig: config.AWSConfig{Endpoint: "endpoint", Region: "region"}, StreamName: "stream"})
+		if len(clients) != 1 {
+			t.Error("Expected one client created")
+		}
+	})
+
+	t.Run("Get SecurityHub values from Secret", func(t *testing.T) {
+		clients := factory.SecurityHubs(&config.SecurityHub{TargetBaseOptions: config.TargetBaseOptions{SecretRef: secretName}, AWSConfig: config.AWSConfig{Endpoint: "endpoint", Region: "region"}})
 		if len(clients) != 1 {
 			t.Error("Expected one client created")
 		}

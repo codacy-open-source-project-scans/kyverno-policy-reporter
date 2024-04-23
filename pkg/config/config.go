@@ -91,6 +91,7 @@ type TargetOption interface {
 type Loki struct {
 	TargetBaseOptions `mapstructure:",squash"`
 	CustomLabels      map[string]string `mapstructure:"customLabels"`
+	Headers           map[string]string `mapstructure:"headers"`
 	Host              string            `mapstructure:"host"`
 	SkipTLS           bool              `mapstructure:"skipTLS"`
 	Certificate       string            `mapstructure:"certificate"`
@@ -110,9 +111,9 @@ type Elasticsearch struct {
 	Rotation          string           `mapstructure:"rotation"`
 	Username          string           `mapstructure:"username"`
 	Password          string           `mapstructure:"password"`
-	ApiKey            string           `mapstructure:"apiKey"`
+	APIKey            string           `mapstructure:"apiKey"`
 	Channels          []*Elasticsearch `mapstructure:"channels"`
-	TypelessApi       bool             `mapstructure:"typelessApi"`
+	TypelessAPI       bool             `mapstructure:"typelessApi"`
 }
 
 // Slack configuration
@@ -206,6 +207,8 @@ type SecurityHub struct {
 	AWSConfig         `mapstructure:",squash"`
 	AccountID         string         `mapstructure:"accountId"`
 	ProductName       string         `mapstructure:"productName"`
+	DelayInSeconds    int            `mapstructure:"delayInSeconds"`
+	Cleanup           bool           `mapstructure:"cleanup"`
 	Channels          []*SecurityHub `mapstructure:"channels"`
 }
 

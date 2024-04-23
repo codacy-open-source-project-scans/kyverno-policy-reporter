@@ -1,6 +1,7 @@
 package loki
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ type Options struct {
 	target.ClientOptions
 	Host         string
 	CustomLabels map[string]string
+	Headers      map[string]string
 	HTTPClient   http.Client
 	Username     string
 	Password     string
@@ -94,6 +96,7 @@ type client struct {
 	host         string
 	client       http.Client
 	customLabels map[string]string
+	headers      map[string]string
 	username     string
 	password     string
 }
@@ -105,6 +108,10 @@ func (l *client) Send(result v1alpha2.PolicyReportResult) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	for k, v := range l.headers {
+		req.Header.Set(k, v)
+	}
+
 	if l.username != "" {
 		req.SetBasicAuth(l.username, l.password)
 	}
@@ -113,6 +120,8 @@ func (l *client) Send(result v1alpha2.PolicyReportResult) {
 	http.ProcessHTTPResponse(l.Name(), resp, err)
 }
 
+func (l *client) CleanUp(_ context.Context, _ v1alpha2.ReportInterface) {}
+
 // NewClient creates a new loki.client to send Results to Loki
 func NewClient(options Options) target.Client {
 	return &client{
@@ -120,6 +129,7 @@ func NewClient(options Options) target.Client {
 		options.Host,
 		options.HTTPClient,
 		options.CustomLabels,
+		options.Headers,
 		options.Username,
 		options.Password,
 	}
