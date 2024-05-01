@@ -41,7 +41,6 @@ import (
 type Resolver struct {
 	config             *Config
 	k8sConfig          *rest.Config
-	mapper             report.Mapper
 	publisher          report.EventPublisher
 	policyStore        *database.Store
 	database           *bun.DB
@@ -214,7 +213,7 @@ func (r *Resolver) RegisterSendResultListener() {
 		r.RegisterNewResultsListener()
 	}
 
-	r.resultListener.RegisterListener(listener.NewSendResultListener(targets, r.Mapper()))
+	r.resultListener.RegisterListener(listener.NewSendResultListener(targets))
 }
 
 // RegisterSendResultListener resolver method
@@ -252,19 +251,6 @@ func (r *Resolver) RegisterMetricsListener() {
 		r.config.Metrics.Mode,
 		r.config.Metrics.CustomLabels,
 	))
-}
-
-// Mapper resolver method
-func (r *Resolver) Mapper() report.Mapper {
-	if r.mapper != nil {
-		return r.mapper
-	}
-
-	mapper := report.NewMapper(r.config.PriorityMap)
-
-	r.mapper = mapper
-
-	return mapper
 }
 
 // SecretClient resolver method
@@ -484,10 +470,10 @@ func (r *Resolver) ResultCache() cache.Cache {
 				Password: r.config.Redis.Password,
 				DB:       r.config.Redis.Database,
 			}),
-			2*time.Hour,
+			6*time.Hour,
 		)
 	} else {
-		r.resultCache = cache.NewInMermoryCache()
+		r.resultCache = cache.NewInMermoryCache(6*time.Hour, 10*time.Minute)
 	}
 
 	return r.resultCache
