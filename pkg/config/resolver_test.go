@@ -164,10 +164,10 @@ var testConfig = &config.Config{
 		Prefix:      "prefix",
 		Channels:    []*config.GCS{{}},
 	},
+	Templates: config.Templates{
+		Dir: "../../templates",
+	},
 	EmailReports: config.EmailReports{
-		Templates: config.EmailTemplates{
-			Dir: "../../templates",
-		},
 		SMTP: config.SMTP{
 			Host:       "localhost",
 			Port:       465,
@@ -189,6 +189,15 @@ var testConfig = &config.Config{
 	GoogleChat: &config.GoogleChat{
 		Webhook:  "http://localhost:900/webhook",
 		Channels: []*config.GoogleChat{{}},
+	},
+	SourceConfig: map[string]config.SourceConfig{
+		"test": {
+			CustomID: config.CustomID{
+				Enabled: true,
+				Fields:  []string{"resource"},
+			},
+		},
+		"default": {},
 	},
 }
 
@@ -579,4 +588,13 @@ func Test_ResolveEnableLeaderElection(t *testing.T) {
 			t.Error("leaderelection should be enabled if general enabled and targets configured")
 		}
 	})
+}
+
+func Test_ResolveCustomIDGenerators(t *testing.T) {
+	resolver := config.NewResolver(testConfig, nil)
+
+	generators := resolver.CustomIDGenerators()
+	if len(generators) != 1 {
+		t.Error("only enabled custom id config should be mapped")
+	}
 }

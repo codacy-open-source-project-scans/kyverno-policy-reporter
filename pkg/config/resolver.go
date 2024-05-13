@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
+	"strings"
 	"time"
 
 	goredis "github.com/go-redis/redis/v8"
@@ -27,12 +28,14 @@ import (
 	"github.com/kyverno/policy-reporter/pkg/email"
 	"github.com/kyverno/policy-reporter/pkg/email/summary"
 	"github.com/kyverno/policy-reporter/pkg/email/violations"
+	"github.com/kyverno/policy-reporter/pkg/helper"
 	"github.com/kyverno/policy-reporter/pkg/kubernetes"
 	"github.com/kyverno/policy-reporter/pkg/kubernetes/secrets"
 	"github.com/kyverno/policy-reporter/pkg/leaderelection"
 	"github.com/kyverno/policy-reporter/pkg/listener"
 	"github.com/kyverno/policy-reporter/pkg/listener/metrics"
 	"github.com/kyverno/policy-reporter/pkg/report"
+	"github.com/kyverno/policy-reporter/pkg/report/result"
 	"github.com/kyverno/policy-reporter/pkg/target"
 	"github.com/kyverno/policy-reporter/pkg/validate"
 )
@@ -173,6 +176,19 @@ func (r *Resolver) EventPublisher() report.EventPublisher {
 	return r.publisher
 }
 
+func (r *Resolver) CustomIDGenerators() map[string]result.IDGenerator {
+	generators := make(map[string]result.IDGenerator)
+	for s, c := range r.config.SourceConfig {
+		if !c.Enabled || len(c.Fields) == 0 {
+			continue
+		}
+
+		generators[strings.ToLower(s)] = result.NewIDGenerator(c.Fields)
+	}
+
+	return generators
+}
+
 // EventPublisher resolver method
 func (r *Resolver) Queue() (*kubernetes.Queue, error) {
 	client, err := r.CRDClient()
@@ -184,6 +200,7 @@ func (r *Resolver) Queue() (*kubernetes.Queue, error) {
 		kubernetes.NewDebouncer(1*time.Minute, r.EventPublisher()),
 		workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "report-queue"),
 		client,
+		result.NewReconditioner(r.CustomIDGenerators()),
 	), nil
 }
 
@@ -368,9 +385,9 @@ func (r *Resolver) SummaryGenerator() (*summary.Generator, error) {
 
 func (r *Resolver) SummaryReporter() *summary.Reporter {
 	return summary.NewReporter(
-		r.config.EmailReports.Templates.Dir,
+		r.config.Templates.Dir,
 		r.config.EmailReports.ClusterName,
-		r.config.EmailReports.TitlePrefix,
+		helper.Defaults(r.config.EmailReports.TitlePrefix, "Report"),
 	)
 }
 
@@ -389,7 +406,7 @@ func (r *Resolver) ViolationsGenerator() (*violations.Generator, error) {
 
 func (r *Resolver) ViolationsReporter() *violations.Reporter {
 	return violations.NewReporter(
-		r.config.EmailReports.Templates.Dir,
+		r.config.Templates.Dir,
 		r.config.EmailReports.ClusterName,
 		r.config.EmailReports.TitlePrefix,
 	)
