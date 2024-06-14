@@ -612,6 +612,11 @@ func (f *TargetFactory) createS3Client(config, parent *S3) target.Client {
 		return nil
 	}
 
+	setFallback(&config.Bucket, parent.Bucket)
+	if config.Bucket == "" {
+		return nil
+	}
+
 	sugar := zap.S()
 
 	if err := checkAWSConfig(config.Name, config.AWSConfig, parent.AWSConfig); err != nil {
@@ -619,13 +624,6 @@ func (f *TargetFactory) createS3Client(config, parent *S3) target.Client {
 
 		return nil
 	}
-
-	setFallback(&config.Bucket, parent.Bucket)
-	if config.Bucket == "" {
-		sugar.Errorf("%s.Bucket has not been declared", config.Name)
-		return nil
-	}
-
 	setFallback(&config.Region, os.Getenv("AWS_REGION"))
 	setFallback(&config.Prefix, parent.Prefix, "policy-reporter")
 	setFallback(&config.KmsKeyID, parent.KmsKeyID)
@@ -726,6 +724,7 @@ func (f *TargetFactory) createSecurityHub(config, parent *SecurityHub) target.Cl
 	sugar.Infof("%s configured", config.Name)
 
 	setFallback(&config.ProductName, parent.ProductName, "Policy Reporter")
+	setFallback(&config.CompanyName, parent.CompanyName, "Kyverno")
 	setInt(&config.DelayInSeconds, parent.DelayInSeconds)
 
 	return securityhub.NewClient(securityhub.Options{
@@ -735,6 +734,7 @@ func (f *TargetFactory) createSecurityHub(config, parent *SecurityHub) target.Cl
 		AccountID:     config.AccountID,
 		Region:        config.Region,
 		ProductName:   config.ProductName,
+		CompanyName:   config.CompanyName,
 		Delay:         time.Duration(config.DelayInSeconds) * time.Second,
 	})
 }
@@ -926,10 +926,13 @@ func NewTargetFactory(secretClient secrets.Client) *TargetFactory {
 }
 
 func hasAWSIdentity() bool {
-	arn := os.Getenv("AWS_ROLE_ARN")
-	file := os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")
+	irsa_arn := os.Getenv("AWS_ROLE_ARN")
+	irsa_file := os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")
 
-	return arn != "" && file != ""
+	pod_identity_file := os.Getenv("AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE")
+	pod_identity_uri := os.Getenv("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+
+	return (irsa_arn != "" && irsa_file != "") || (pod_identity_file != "" && pod_identity_uri != "")
 }
 
 func checkAWSConfig(name string, config AWSConfig, parent AWSConfig) error {
