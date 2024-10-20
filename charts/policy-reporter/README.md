@@ -3,7 +3,7 @@
 Policy Reporter watches for PolicyReport Resources.
 It creates Prometheus Metrics and can send rule validation events to different targets like Loki, Elasticsearch, Slack or Discord
 
-![Version: 3.0.0-rc.1](https://img.shields.io/badge/Version-3.0.0--rc.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.0.0-rc.1](https://img.shields.io/badge/AppVersion-3.0.0--rc.1-informational?style=flat-square)
+![Version: 3.0.0-rc.4](https://img.shields.io/badge/Version-3.0.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.0.0-rc.2](https://img.shields.io/badge/AppVersion-3.0.0--rc.2-informational?style=flat-square)
 
 ## Documentation
 
@@ -49,7 +49,7 @@ Open `http://localhost:8082/` in your browser.
 | image.registry | string | `"ghcr.io"` | Image registry |
 | image.repository | string | `"kyverno/policy-reporter"` | Image repository |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pullPolicy |
-| image.tag | string | `"3.0.0-rc.1"` | Image tag |
+| image.tag | string | `"3.0.0-rc.2"` | Image tag |
 | imagePullSecrets | list | `[]` | Image pullSecrets |
 | priorityClassName | string | `""` | Deployment priorityClassName |
 | replicaCount | int | `1` | Deployment replica count |
@@ -326,7 +326,7 @@ Open `http://localhost:8082/` in your browser.
 | ui.image.registry | string | `"ghcr.io"` | Image registry |
 | ui.image.repository | string | `"kyverno/policy-reporter-ui"` | Image repository |
 | ui.image.pullPolicy | string | `"IfNotPresent"` | Image PullPolicy |
-| ui.image.tag | string | `"2.0.0-rc.1"` | Image tag |
+| ui.image.tag | string | `"2.0.0-rc.2"` | Image tag |
 | ui.replicaCount | int | `1` | Deployment replica count |
 | ui.tempDir | string | `"/tmp"` | Temporary Directory to persist session data for authentication |
 | ui.logging.api | bool | `false` | Enables external api request logging |
@@ -341,6 +341,7 @@ Open `http://localhost:8082/` in your browser.
 | ui.openIDConnect.callbackUrl | string | `""` | OpenID Connect Callback URL |
 | ui.openIDConnect.clientId | string | `""` | OpenID Connect ClientID |
 | ui.openIDConnect.clientSecret | string | `""` | OpenID Connect ClientSecret |
+| ui.openIDConnect.groupClaim | string | `""` | Optional Group Claim to map user groups to the profile groups can be used to define access control for clusters, boards and custom boards. |
 | ui.openIDConnect.scopes | list | `[]` | OpenID Connect allowed Scopes |
 | ui.openIDConnect.secretRef | string | `""` | Provide OpenID Connect configuration via Secret supported keys: `discoveryUrl`, `clientId`, `clientSecret` |
 | ui.oauth.enabled | bool | `false` | Enable openID Connect authentication |
@@ -402,7 +403,7 @@ Open `http://localhost:8082/` in your browser.
 | plugin.kyverno.image.registry | string | `"ghcr.io"` | Image registry |
 | plugin.kyverno.image.repository | string | `"kyverno/policy-reporter/kyverno-plugin"` | Image repository |
 | plugin.kyverno.image.pullPolicy | string | `"IfNotPresent"` | Image PullPolicy |
-| plugin.kyverno.image.tag | string | `"0.3.0"` | Image tag Defaults to `Chart.AppVersion` if omitted |
+| plugin.kyverno.image.tag | string | `"0.4.0"` | Image tag |
 | plugin.kyverno.replicaCount | int | `1` | Deployment replica count |
 | plugin.kyverno.logging.api | bool | `false` | Enables external API request logging |
 | plugin.kyverno.logging.server | bool | `false` | Enables Server access logging |
@@ -411,8 +412,11 @@ Open `http://localhost:8082/` in your browser.
 | plugin.kyverno.server.port | int | `8080` | Application port |
 | plugin.kyverno.blockReports.enabled | bool | `false` | Enables he BlockReport feature |
 | plugin.kyverno.blockReports.eventNamespace | string | `"default"` | Watches for Kyverno Events in the configured namespace leave blank to watch in all namespaces |
+| plugin.kyverno.blockReports.source | string | `"Kyverno Event"` | Used value for the source field in the created (Cluster)PolicyReports |
 | plugin.kyverno.blockReports.results.maxPerReport | int | `200` | Max items per PolicyReport resource |
 | plugin.kyverno.blockReports.results.keepOnlyLatest | bool | `false` | Keep only the latest of duplicated events |
+| plugin.kyverno.blockReports.policyReport.labels | list | `[]` | Labels for all created (Cluster)PolicyReports |
+| plugin.kyverno.blockReports.policyReport.annotations | list | `[]` | Annotations for all created (Cluster)PolicyReports |
 | plugin.kyverno.imagePullSecrets | list | `[]` | Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument |
 | plugin.kyverno.serviceAccount.create | bool | `true` | Create ServiceAccount |
 | plugin.kyverno.serviceAccount.automount | bool | `true` | Enable ServiceAccount automaount |
