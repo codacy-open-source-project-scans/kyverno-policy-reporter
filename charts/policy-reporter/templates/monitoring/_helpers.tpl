@@ -23,14 +23,16 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "monitoring.labels" -}}
-helm.sh/chart: {{ include "monitoring.chart" . }}
 {{ include "monitoring.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/component: monitoring
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/part-of: kyverno
+{{- if not .Values.static }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ include "monitoring.chart" . }}
+{{- end }}
 {{- with .Values.global.labels }}
 {{ toYaml . }}
 {{- end -}}

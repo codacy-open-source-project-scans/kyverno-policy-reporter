@@ -29,14 +29,16 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "policyreporter.labels" -}}
-helm.sh/chart: {{ include "policyreporter.chart" . }}
 {{ include "policyreporter.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/component: reporting
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/part-of: policy-reporter
+{{- if not .Values.static }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ include "policyreporter.chart" . }}
+{{- end }}
 {{- with .Values.global.labels }}
 {{ toYaml . }}
 {{- end -}}
@@ -46,9 +48,11 @@ app.kubernetes.io/part-of: policy-reporter
 Pod labels
 */}}
 {{- define "policyreporter.podLabels" -}}
-helm.sh/chart: {{ include "policyreporter.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/part-of: policy-reporter
+{{- if not .Values.static }}
+helm.sh/chart: {{ include "policyreporter.chart" . }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -112,6 +116,15 @@ maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
 {{- end -}}
 {{- end -}}
 
+{{/* Get the namespace name for grafana. */}}
+{{- define "grafana.namespace" -}}
+{{- if .Values.monitoring.grafana.namespace -}}
+    {{- .Values.monitoring.grafana.namespace -}}
+{{- else -}}
+    {{- include "policyreporter.namespace" . -}}
+{{- end -}}
+{{- end -}}
+
 {{/* Get the namespace name. */}}
 {{- define "policyreporter.logLevel" -}}
 {{- if .Values.logging.server -}}
@@ -147,6 +160,10 @@ config:
   certificate: {{ .certificate | quote }}
   skipTLS: {{ .skipTLS }}
   path: {{ .path | quote }}
+  {{- with .headers }}
+  headers:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{ include "target" . }}
 {{- end }}
 
@@ -160,6 +177,11 @@ config:
   apiKey: {{ .apiKey | quote }}
   index: {{ .index| quote }}
   rotation: {{ .rotation | quote }}
+  typelessApi: {{ .typelessApi | quote }}
+  {{- with .headers }}
+  headers:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{ include "target" . }}
 {{- end }}
 
@@ -229,11 +251,11 @@ config:
 
 {{- define "target.securityhub" -}}
 config:
-  accessKeyId: {{ .accessKeyId }}
-  secretAccessKey:  {{ .secretAccessKey }}
+  accessKeyId: {{ .accessKeyId | quote }}
+  secretAccessKey:  {{ .secretAccessKey | quote }}
   region: {{ .region }}
   endpoint: {{ .endpoint }}
-  accountId: {{ .accountId }}
+  accountId: {{ .accountId | quote }}
   productName: {{ .productName }}
   companyName: {{ .companyName }}
   delayInSeconds: {{ .delayInSeconds }}

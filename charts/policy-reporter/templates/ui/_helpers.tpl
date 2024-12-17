@@ -25,12 +25,14 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "ui.labels" -}}
-helm.sh/chart: {{ include "ui.chart" . }}
 {{ include "ui.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
+{{- if not .Values.static }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ include "ui.chart" . }}
+{{- end }}
 {{- with .Values.global.labels }}
 {{ toYaml . }}
 {{- end -}}
@@ -48,21 +50,21 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "ui.serviceAccountName" -}}
-{{- if .Values.plugin.kyverno.serviceAccount.create }}
-{{- default (include "ui.fullname" .) .Values.plugin.kyverno.serviceAccount.name }}
+{{- if .Values.ui.serviceAccount.create }}
+{{- default (include "ui.fullname" .) .Values.ui.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.plugin.kyverno.serviceAccount.name }}
+{{- default "default" .Values.ui.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
 {{- define "ui.podDisruptionBudget" -}}
-{{- if and .Values.plugin.kyverno.ui.podDisruptionBudget.minAvailable .Values.plugin.kyverno.ui.podDisruptionBudget.maxUnavailable }}
+{{- if and .Values.ui.podDisruptionBudget.minAvailable .Values.ui.podDisruptionBudget.maxUnavailable }}
 {{- fail "Cannot set both" -}}
 {{- end }}
-{{- if not .Values.plugin.kyverno.ui.podDisruptionBudget.maxUnavailable }}
-minAvailable: {{ default 1 .Values.plugin.kyverno.ui.podDisruptionBudget.minAvailable }}
+{{- if not .Values.ui.podDisruptionBudget.maxUnavailable }}
+minAvailable: {{ default 1 .Values.ui.podDisruptionBudget.minAvailable }}
 {{- end }}
-{{- if .Values.plugin.kyverno.ui.podDisruptionBudget.maxUnavailable }}
-maxUnavailable: {{ .Values.plugin.kyverno.ui.podDisruptionBudget.maxUnavailable }}
+{{- if .Values.ui.podDisruptionBudget.maxUnavailable }}
+maxUnavailable: {{ .Values.ui.podDisruptionBudget.maxUnavailable }}
 {{- end }}
 {{- end }}

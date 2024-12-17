@@ -1,3 +1,4 @@
+{{- if and .Values.monitoring.enabled }}
 {{ $root := .Values.monitoring }}
 
 {{- if and $root.grafana.dashboards.enabled $root.grafana.dashboards.enable.overview }}
@@ -15,7 +16,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "monitoring.fullname" . }}-overview-dashboard
-  namespace: {{ include "policyreporter.namespace" . }}
+  namespace: {{ include "grafana.namespace" . }}
   annotations:
     {{ $root.grafana.folder.annotation }}: {{ $root.grafana.folder.name }}
     {{- with .Values.annotations }}
@@ -687,4 +688,5 @@ data:
     "title": "PolicyReports",
     "version": 1
     }
+{{- end }}
 {{- end }}

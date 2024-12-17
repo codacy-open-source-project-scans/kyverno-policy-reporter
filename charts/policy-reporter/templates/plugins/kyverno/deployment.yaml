@@ -34,6 +34,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "kyverno-plugin.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.plugin.kyverno.serviceAccount.automount }}
       {{- if .Values.plugin.kyverno.podSecurityContext }}
       securityContext:
         {{- toYaml .Values.plugin.kyverno.podSecurityContext | nindent 8 }}
@@ -69,6 +70,9 @@ spec:
             mountPath: /app/config.yaml
             subPath: config.yaml
             readOnly: true
+          {{- with .Values.plugin.kyverno.extraVolumes.volumeMounts }}
+          {{ toYaml . | nindent 10 | trim }}
+          {{- end }}
           env:
           - name: POD_NAMESPACE
             valueFrom:
@@ -88,6 +92,9 @@ spec:
         secret:
           secretName: {{ include "kyverno-plugin.fullname" . }}-config
           optional: true
+      {{- with .Values.plugin.kyverno.extraVolumes.volumes }}
+      {{ toYaml . | nindent 6 | trim }}
+      {{- end }}
       {{- with .Values.plugin.kyverno.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

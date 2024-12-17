@@ -3,7 +3,7 @@
 Policy Reporter watches for PolicyReport Resources.
 It creates Prometheus Metrics and can send rule validation events to different targets like Loki, Elasticsearch, Slack or Discord
 
-![Version: 3.0.0-rc.4](https://img.shields.io/badge/Version-3.0.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.0.0-rc.2](https://img.shields.io/badge/AppVersion-3.0.0--rc.2-informational?style=flat-square)
+![Version: 3.0.0-rc.13](https://img.shields.io/badge/Version-3.0.0--rc.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.0.0-rc.7](https://img.shields.io/badge/AppVersion-3.0.0--rc.7-informational?style=flat-square)
 
 ## Documentation
 
@@ -49,7 +49,7 @@ Open `http://localhost:8082/` in your browser.
 | image.registry | string | `"ghcr.io"` | Image registry |
 | image.repository | string | `"kyverno/policy-reporter"` | Image repository |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pullPolicy |
-| image.tag | string | `"3.0.0-rc.2"` | Image tag |
+| image.tag | string | `nil` | Image tag |
 | imagePullSecrets | list | `[]` | Image pullSecrets |
 | priorityClassName | string | `""` | Deployment priorityClassName |
 | replicaCount | int | `1` | Deployment replica count |
@@ -59,7 +59,7 @@ Open `http://localhost:8082/` in your browser.
 | annotations | object | `{}` | Key/value pairs that are attached to all resources. |
 | rbac.enabled | bool | `true` | Create RBAC resources |
 | serviceAccount.create | bool | `true` | Create ServiceAccount |
-| serviceAccount.automount | bool | `true` | Enable ServiceAccount automaount |
+| serviceAccount.automount | bool | `true` | Enable ServiceAccount automount |
 | serviceAccount.annotations | object | `{}` | Annotations for the ServiceAccount |
 | serviceAccount.name | string | `""` | The ServiceAccount name |
 | service.enabled | bool | `true` | Create Service |
@@ -158,6 +158,7 @@ Open `http://localhost:8082/` in your browser.
 | target.elasticsearch.host | string | `""` | Host address |
 | target.elasticsearch.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
 | target.elasticsearch.skipTLS | bool | `false` | Skip TLS verification |
+| target.elasticsearch.headers | object | `{}` | Additional HTTP Headers |
 | target.elasticsearch.index | string | `"policy-reporter"` | Elasticsearch index (default: policy-reporter) |
 | target.elasticsearch.rotation | string | `"daily"` | Elasticsearch index rotation and index suffix Possible values: daily, monthly, annually, none (default: daily) |
 | target.elasticsearch.typelessApi | bool | `false` | Enables Elasticsearch typless API https://www.elastic.co/blog/moving-from-types-to-typeless-apis-in-elasticsearch-7-0 keeping as false for retrocompatibility. |
@@ -183,6 +184,9 @@ Open `http://localhost:8082/` in your browser.
 | target.slack.filter | object | `{}` | Filter Results which should send to this target Wildcars for namespaces and policies are supported, you can either define exclude or include values Filters are available for all targets except the UI |
 | target.slack.channels | list | `[]` | List of channels to route results to different configurations |
 | target.discord.webhook | string | `""` | Webhook Address |
+| target.discord.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
+| target.discord.skipTLS | bool | `false` | Skip TLS verification |
+| target.discord.headers | object | `{}` | Additional HTTP Headers |
 | target.discord.secretRef | string | `""` | Read configuration from an already existing Secret |
 | target.discord.mountedSecret | string | `""` | Mounted secret path by Secrets Controller, secret should be in json format |
 | target.discord.minimumSeverity | string | `""` | Minimum severity: "" < info < low < medium < high < critical |
@@ -192,6 +196,9 @@ Open `http://localhost:8082/` in your browser.
 | target.discord.filter | object | `{}` | Filter Results which should send to this target Wildcars for namespaces and policies are supported, you can either define exclude or include values Filters are available for all targets except the UI |
 | target.discord.channels | list | `[]` | List of channels to route results to different configurations |
 | target.teams.webhook | string | `""` | Webhook Address |
+| target.teams.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
+| target.teams.skipTLS | bool | `false` | Skip TLS verification |
+| target.teams.headers | object | `{}` | Additional HTTP Headers |
 | target.teams.secretRef | string | `""` | Read configuration from an already existing Secret |
 | target.teams.mountedSecret | string | `""` | Mounted secret path by Secrets Controller, secret should be in json format |
 | target.teams.minimumSeverity | string | `""` | Minimum severity: "" < info < low < medium < high < critical |
@@ -200,7 +207,9 @@ Open `http://localhost:8082/` in your browser.
 | target.teams.customFields | object | `{}` | Added as additional labels |
 | target.teams.filter | object | `{}` | Filter Results which should send to this target Wildcars for namespaces and policies are supported, you can either define exclude or include values Filters are available for all targets except the UI |
 | target.teams.channels | list | `[]` | List of channels to route results to different configurations |
-| target.webhook.host | string | `""` | Webhook Address |
+| target.webhook.webhook | string | `""` | Webhook Address |
+| target.webhook.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
+| target.webhook.skipTLS | bool | `false` | Skip TLS verification |
 | target.webhook.headers | object | `{}` | Additional HTTP Headers |
 | target.webhook.secretRef | string | `""` | Read configuration from an already existing Secret |
 | target.webhook.mountedSecret | string | `""` | Mounted secret path by Secrets Controller, secret should be in json format |
@@ -213,6 +222,8 @@ Open `http://localhost:8082/` in your browser.
 | target.telegram.token | string | `""` | Telegram bot token |
 | target.telegram.chatId | string | `""` | Telegram chat id |
 | target.telegram.host | optional | `""` | Telegram proxy host |
+| target.telegram.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
+| target.telegram.skipTLS | bool | `false` | Skip TLS verification |
 | target.telegram.headers | object | `{}` | Additional HTTP Headers |
 | target.telegram.secretRef | string | `""` | Read configuration from an already existing Secret |
 | target.telegram.mountedSecret | string | `""` | Mounted secret path by Secrets Controller, secret should be in json format |
@@ -223,6 +234,8 @@ Open `http://localhost:8082/` in your browser.
 | target.telegram.filter | object | `{}` | Filter Results which should send to this target Wildcars for namespaces and policies are supported, you can either define exclude or include values Filters are available for all targets except the UI |
 | target.telegram.channels | list | `[]` | List of channels to route results to different configurations |
 | target.googleChat.webhook | string | `""` | Webhook Address |
+| target.googleChat.certificate | string | `""` | Server Certificate file path Can be added under extraVolumes |
+| target.googleChat.skipTLS | bool | `false` | Skip TLS verification |
 | target.googleChat.headers | object | `{}` | Additional HTTP Headers |
 | target.googleChat.secretRef | string | `""` | Read configuration from an already existing Secret |
 | target.googleChat.mountedSecret | string | `""` | Mounted secret path by Secrets Controller, secret should be in json format |
@@ -326,7 +339,7 @@ Open `http://localhost:8082/` in your browser.
 | ui.image.registry | string | `"ghcr.io"` | Image registry |
 | ui.image.repository | string | `"kyverno/policy-reporter-ui"` | Image repository |
 | ui.image.pullPolicy | string | `"IfNotPresent"` | Image PullPolicy |
-| ui.image.tag | string | `"2.0.0-rc.2"` | Image tag |
+| ui.image.tag | string | `"2.0.0-rc.4"` | Image tag |
 | ui.replicaCount | int | `1` | Deployment replica count |
 | ui.tempDir | string | `"/tmp"` | Temporary Directory to persist session data for authentication |
 | ui.logging.api | bool | `false` | Enables external api request logging |
@@ -359,7 +372,7 @@ Open `http://localhost:8082/` in your browser.
 | ui.clusters | list | `[]` | Connected Policy Reporter APIs |
 | ui.imagePullSecrets | list | `[]` | Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument |
 | ui.serviceAccount.create | bool | `true` | Create ServiceAccount |
-| ui.serviceAccount.automount | bool | `true` | Enable ServiceAccount automaount |
+| ui.serviceAccount.automount | bool | `true` | Enable ServiceAccount automount |
 | ui.serviceAccount.annotations | object | `{}` | Annotations for the ServiceAccount |
 | ui.serviceAccount.name | string | `""` | The ServiceAccount name |
 | ui.extraManifests | list | `[]` | list of extra manifests |
@@ -399,6 +412,8 @@ Open `http://localhost:8082/` in your browser.
 | ui.nodeSelector | object | `{}` | Node labels for pod assignment |
 | ui.tolerations | list | `[]` | List of node taints to tolerate |
 | ui.affinity | object | `{}` | Affinity constraints. |
+| ui.extraVolumes.volumeMounts | list | `[]` | Deployment volumeMounts |
+| ui.extraVolumes.volumes | list | `[]` | Deployment values |
 | plugin.kyverno.enabled | bool | `false` | Enable Kyverno Plugin |
 | plugin.kyverno.image.registry | string | `"ghcr.io"` | Image registry |
 | plugin.kyverno.image.repository | string | `"kyverno/policy-reporter/kyverno-plugin"` | Image repository |
@@ -419,7 +434,7 @@ Open `http://localhost:8082/` in your browser.
 | plugin.kyverno.blockReports.policyReport.annotations | list | `[]` | Annotations for all created (Cluster)PolicyReports |
 | plugin.kyverno.imagePullSecrets | list | `[]` | Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument |
 | plugin.kyverno.serviceAccount.create | bool | `true` | Create ServiceAccount |
-| plugin.kyverno.serviceAccount.automount | bool | `true` | Enable ServiceAccount automaount |
+| plugin.kyverno.serviceAccount.automount | bool | `true` | Enable ServiceAccount automount |
 | plugin.kyverno.serviceAccount.annotations | object | `{}` | Annotations for the ServiceAccount |
 | plugin.kyverno.serviceAccount.name | string | `""` | The ServiceAccount name |
 | plugin.kyverno.podAnnotations | object | `{}` | Additional annotations to add to each pod |
@@ -460,6 +475,8 @@ Open `http://localhost:8082/` in your browser.
 | plugin.kyverno.nodeSelector | object | `{}` | Node labels for pod assignment |
 | plugin.kyverno.tolerations | list | `[]` | List of node taints to tolerate |
 | plugin.kyverno.affinity | object | `{}` | Affinity constraints. |
+| plugin.kyverno.extraVolumes.volumeMounts | list | `[]` | Deployment volumeMounts |
+| plugin.kyverno.extraVolumes.volumes | list | `[]` | Deployment values |
 | plugin.trivy.enabled | bool | `false` | Enable Trivy Operator Plugin |
 | plugin.trivy.image.registry | string | `"ghcr.io"` | Image registry |
 | plugin.trivy.image.repository | string | `"kyverno/policy-reporter/trivy-plugin"` | Image repository |
@@ -476,7 +493,7 @@ Open `http://localhost:8082/` in your browser.
 | plugin.trivy.policyReporter.secretRef | string | `""` | Secret to read the API configuration from supports `host`, `certificate`, `skipTLS`, `username`, `password` key |
 | plugin.trivy.imagePullSecrets | list | `[]` | Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument |
 | plugin.trivy.serviceAccount.create | bool | `true` | Create ServiceAccount |
-| plugin.trivy.serviceAccount.automount | bool | `true` | Enable ServiceAccount automaount |
+| plugin.trivy.serviceAccount.automount | bool | `true` | Enable ServiceAccount automount |
 | plugin.trivy.serviceAccount.annotations | object | `{}` | Annotations for the ServiceAccount |
 | plugin.trivy.serviceAccount.name | string | `""` | The ServiceAccount name |
 | plugin.trivy.podAnnotations | object | `{}` | Additional annotations to add to each pod |
@@ -512,6 +529,8 @@ Open `http://localhost:8082/` in your browser.
 | plugin.trivy.nodeSelector | object | `{}` | Node labels for pod assignment |
 | plugin.trivy.tolerations | list | `[]` | List of node taints to tolerate |
 | plugin.trivy.affinity | object | `{}` | Affinity constraints. |
+| plugin.trivy.extraVolumes.volumeMounts | list | `[]` | Deployment volumeMounts |
+| plugin.trivy.extraVolumes.volumes | list | `[]` | Deployment values |
 | monitoring.enabled | bool | `false` | Enables the Prometheus Operator integration |
 | monitoring.annotations | object | `{}` | Key/value pairs that are attached to all resources. |
 | monitoring.serviceMonitor.honorLabels | bool | `false` | HonorLabels chooses the metrics labels on collisions with target labels |
